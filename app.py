@@ -29,14 +29,14 @@ PINECONE_API_ENV = os.getenv('PINECONE_API_ENV')
 
 openai.api_key = OPENAI_API_KEY
 
-
+print ('b')
 pinecone.init(
     api_key=PINECONE_API_KEY,
     environment=PINECONE_API_ENV
 )
 
 index_name = "langchain2"
-
+print('b')
 
 def process_document_and_query(file, question, prompt):
     loader = UnstructuredPDFLoader(file)
@@ -94,10 +94,13 @@ async def process_pdf(file: UploadFile = File(None),
     print(prompt)
 
     if file and file.filename != '':
+        print ('c')
         with open(os.path.join("/tmp", file.filename), "wb") as buffer:
             buffer.write(await file.read())
+        print ('c')    
         answer = process_document_and_query(
             os.path.join("/tmp", file.filename), question, prompt)
+        print ('c')
     else:
         answer = answer_question_without_file(prompt)
 
