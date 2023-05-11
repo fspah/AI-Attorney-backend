@@ -40,18 +40,28 @@ index_name = "langchain2"
 
 def process_document_and_query(file, question, prompt):
     loader = UnstructuredPDFLoader(file)
+    print ('a')
     data = loader.load()
+    print ('a')
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=0)
+    print ('a')
     texts = text_splitter.split_documents(data)
+    print ('a')
     embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+    print ('a')
     docsearch = Pinecone.from_texts(
         [t.page_content for t in texts], embeddings, index_name=index_name)
+    print ('a')
     docs = docsearch.similarity_search(question, include_metadata=True)
+    print ('a')
     llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
+    print ('a')
     chain = load_qa_chain(llm, chain_type="stuff")
+    print ('a')
     answer = chain.run(input_documents=docs, question=prompt)
+    print ('a')
 
     return answer
 
