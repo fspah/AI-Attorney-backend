@@ -40,28 +40,38 @@ print('b')
 
 def process_document_and_query(file, question, prompt):
     loader = UnstructuredPDFLoader(file)
-    print ('a')
+    print('a', flush=True)
+
     data = loader.load()
-    print ('a')
+    print('a', flush=True)
+
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=0)
-    print ('a')
+    print('a', flush=True)
+
     texts = text_splitter.split_documents(data)
-    print ('a')
+    print('a', flush=True)
+
     embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
-    print ('a')
+    print('a', flush=True)
+
     docsearch = Pinecone.from_texts(
         [t.page_content for t in texts], embeddings, index_name=index_name)
-    print ('a')
+    print('a', flush=True)
+
     docs = docsearch.similarity_search(question, include_metadata=True)
-    print ('a')
+    print('a', flush=True)
+
     llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
-    print ('a')
+    print('a', flush=True)
+
     chain = load_qa_chain(llm, chain_type="stuff")
-    print ('a')
+    print('a', flush=True)
+
     answer = chain.run(input_documents=docs, question=prompt)
-    print ('a')
+    print('a', flush=True)
+
 
     return answer
 
