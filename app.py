@@ -43,7 +43,7 @@ def process_document_and_query(file, question, prompt):
     print('a', flush=True)
 
     data = loader.load()
-    print('a', flush=True)
+    print('a', flush=True) #this one takes long
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
@@ -52,13 +52,14 @@ def process_document_and_query(file, question, prompt):
 
     texts = text_splitter.split_documents(data)
     print('a', flush=True)
+    print (f'Now you have {len(texts)} documents')
 
     embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
     print('a', flush=True)
 
     docsearch = Pinecone.from_texts(
         [t.page_content for t in texts], embeddings, index_name=index_name)
-    print('a', flush=True)
+    print('a', flush=True) #this one takes long
 
     docs = docsearch.similarity_search(question, include_metadata=True)
     print('a', flush=True)
@@ -107,14 +108,17 @@ async def process_pdf(file: UploadFile = File(None),
         print ('c')
         with open(os.path.join("/tmp", file.filename), "wb") as buffer:
             buffer.write(await file.read())
-        print ('c')    
+        print ('c')  
+        file_path = os.path.join("/tmp", file.filename)
+        file_size = os.path.getsize(file_path)  # Get the file size
+        file_size_kb = file_size / 1024  # Convert bytes to kilobytes
         answer = process_document_and_query(
             os.path.join("/tmp", file.filename), question, prompt)
         print ('c')
     else:
         answer = answer_question_without_file(prompt)
 
-    return JSONResponse(content={'answer': answer})
+    return JSONResponse(content={'answer': answer, 'file_size_kb': file_size_kb})  # Return file size along with the answer
 
 if __name__ == '__main__':
     import uvicorn
