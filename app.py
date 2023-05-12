@@ -103,6 +103,7 @@ async def process_pdf(file: UploadFile = File(None),
     located += location
     prompt += question + located
     print(prompt)
+    file_size_kb = 0  
 
     if file and file.filename != '':
         print ('c')
