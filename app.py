@@ -29,7 +29,7 @@ PINECONE_API_ENV = os.getenv('PINECONE_API_ENV')
 
 openai.api_key = OPENAI_API_KEY
 
-print ('b')
+print('b')
 pinecone.init(
     api_key=PINECONE_API_KEY,
     environment=PINECONE_API_ENV
@@ -38,12 +38,13 @@ pinecone.init(
 index_name = "langchain2"
 print('b')
 
+
 def process_document_and_query(file, question, prompt):
     loader = UnstructuredPDFLoader(file)
     print('a', flush=True)
 
     data = loader.load()
-    print('a', flush=True) #this one takes long
+    print('a', flush=True)
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
@@ -52,14 +53,14 @@ def process_document_and_query(file, question, prompt):
 
     texts = text_splitter.split_documents(data)
     print('a', flush=True)
-    print (f'Now you have {len(texts)} documents')
+    print(f'Now you have {len(texts)} documents')
 
     embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
     print('a', flush=True)
 
     docsearch = Pinecone.from_texts(
         [t.page_content for t in texts], embeddings, index_name=index_name)
-    print('a', flush=True) #this one takes long
+    print('a', flush=True)
 
     docs = docsearch.similarity_search(question, include_metadata=True)
     print('a', flush=True)
@@ -72,7 +73,6 @@ def process_document_and_query(file, question, prompt):
 
     answer = chain.run(input_documents=docs, question=prompt)
     print('a', flush=True)
-
 
     return answer
 
@@ -103,27 +103,23 @@ async def process_pdf(file: UploadFile = File(None),
     located += location
     prompt += question + located
     print(prompt)
-    file_size_kb = 0  
 
     if file and file.filename != '':
-        print ('c')
+        print('c')
         with open(os.path.join("/tmp", file.filename), "wb") as buffer:
             buffer.write(await file.read())
-        print ('c')  
-        file_path = os.path.join("/tmp", file.filename)
-        file_size = os.path.getsize(file_path)  # Get the file size
-        file_size_kb = file_size / 1024  # Convert bytes to kilobytes
+        print('c')
         answer = process_document_and_query(
             os.path.join("/tmp", file.filename), question, prompt)
-        print ('c')
+        print('c')
     else:
         answer = answer_question_without_file(prompt)
 
-    return JSONResponse(content={'answer': answer, 'file_size_kb': file_size_kb})  # Return file size along with the answer
+    return JSONResponse(content={'answer': answer})
+
 
 if __name__ == '__main__':
     import uvicorn
-    port = int(os.environ.get('PORT', 5000)) # default to 5000 if PORT is not set
+    port = int(os.environ.get('PORT', 5000))
     print(f'Starting server on port {port}')
-    uvicorn.run(app, host='0.0.0.0', port=port)
-
+    uvicorn.run(app, host='0.0.0.0', port=port, timeout=1000)
