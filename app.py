@@ -79,7 +79,7 @@ def process_document_and_query(file, question, prompt):
 
 def answer_question_without_file(prompt):
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
@@ -117,6 +117,20 @@ async def process_pdf(file: UploadFile = File(None),
 
     return JSONResponse(content={'answer': answer})
 
+
+@app.post('/chat')
+async def chat(prompt: str = Form(...)):
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+               ],
+        max_tokens=200,
+        temperature=0
+    )
+    answer = response['choices'][0]['message']['content']
+    return JSONResponse(content={'answer': answer})
 
 if __name__ == '__main__':
     import uvicorn
