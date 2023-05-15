@@ -1,7 +1,6 @@
-from fastapi import FastAPI, File, Form, UploadFile, Depends
+from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from typing import Optional
 import shutil
 import os
 import openai
@@ -64,8 +63,9 @@ def process_document_and_query(file):
     print('a', flush=True)
 
     return docsearch
- 
-def process_question(docsearch,question,prompt):
+
+
+def process_question(docsearch, question, prompt):
     docs = docsearch.similarity_search(question, include_metadata=True)
     print('a', flush=True)
 
@@ -80,6 +80,7 @@ def process_question(docsearch,question,prompt):
 
     return answer
 
+
 def answer_question_without_file(prompt):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -93,7 +94,9 @@ def answer_question_without_file(prompt):
     answer = response['choices'][0]['message']['content']
     return answer
 
+
 docsearch_cache = {}  # Cache to store docsearch objects. Key is filename.
+
 
 @app.post('/upload-file')
 async def upload_file(file: UploadFile = File(...)):
@@ -102,11 +105,12 @@ async def upload_file(file: UploadFile = File(...)):
 
     # After the file is saved, process the document
     docsearch = process_document_and_query(os.path.join("/tmp", file.filename))
-    
+
     # Save the docsearch object in the cache
     docsearch_cache[file.filename] = docsearch
 
     return {"filename": file.filename}
+
 
 @app.post('/process-pdf')
 async def process_pdf(filename: str = Form(...), question: str = Form(...)):
@@ -114,17 +118,13 @@ async def process_pdf(filename: str = Form(...), question: str = Form(...)):
         "You are an expert attorney. "
         "Give your advice on the following question: "
     )
-    prompt += question 
+    prompt += question
     print(prompt)
 
-    if filename in docsearch_cache:  # Check if the filename is in the cache
-        docsearch = docsearch_cache[filename]
-        answer = process_question(docsearch, question, prompt)
-    else:
-        answer = answer_question_without_file(prompt)
+    docsearch = docsearch_cache[filename]
+    answer = process_question(docsearch, question, prompt)
 
     return JSONResponse(content={'answer': answer})
-
 
 
 @app.post('/chat')
@@ -134,7 +134,7 @@ async def chat(prompt: str = Form(...)):
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
-               ],
+        ],
         max_tokens=200,
         temperature=0
     )
