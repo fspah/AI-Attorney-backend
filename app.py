@@ -93,15 +93,23 @@ def answer_question_without_file(prompt):
     answer = response['choices'][0]['message']['content']
     return answer
 
+docsearch_cache = {}  # Cache to store docsearch objects. Key is filename.
+
 @app.post('/upload-file')
 async def upload_file(file: UploadFile = File(...)):
     with open(os.path.join("/tmp", file.filename), "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+
+    # After the file is saved, process the document
+    docsearch = process_document_and_query(os.path.join("/tmp", file.filename))
+    
+    # Save the docsearch object in the cache
+    docsearch_cache[file.filename] = docsearch
+
     return {"filename": file.filename}
 
 @app.post('/process-pdf')
-async def process_pdf(filename: str = Form(...),  # change the parameter to filename
-                      question: str = Form(...)):
+async def process_pdf(filename: str = Form(...), question: str = Form(...)):
     prompt = (
         "You are an expert attorney. "
         "Give your advice on the following question: "
@@ -109,16 +117,14 @@ async def process_pdf(filename: str = Form(...),  # change the parameter to file
     prompt += question 
     print(prompt)
 
-    if filename:  # check if a filename was provided
-        print('c')
-        docsearch = process_document_and_query(
-            os.path.join("/tmp", filename))  # use the filename to access the file
-        answer=process_question(docsearch, question, prompt)
-        print('c')
+    if filename in docsearch_cache:  # Check if the filename is in the cache
+        docsearch = docsearch_cache[filename]
+        answer = process_question(docsearch, question, prompt)
     else:
         answer = answer_question_without_file(prompt)
 
     return JSONResponse(content={'answer': answer})
+
 
 
 @app.post('/chat')
