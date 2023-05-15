@@ -1,7 +1,8 @@
-from fastapi import FastAPI, File, Form, UploadFile
+from fastapi import FastAPI, File, Form, UploadFile, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-
+from typing import Optional
+import shutil
 import os
 import openai
 from langchain.llms import OpenAI
@@ -39,7 +40,7 @@ index_name = "langchain2"
 print('b')
 
 
-def process_document_and_query(file, question, prompt):
+def process_document_and_query(file):
     loader = UnstructuredPDFLoader(file)
     print('a', flush=True)
 
@@ -62,6 +63,9 @@ def process_document_and_query(file, question, prompt):
         [t.page_content for t in texts], embeddings, index_name=index_name)
     print('a', flush=True)
 
+    return docsearch
+ 
+def process_question(docsearch,question,prompt):
     docs = docsearch.similarity_search(question, include_metadata=True)
     print('a', flush=True)
 
@@ -76,7 +80,6 @@ def process_document_and_query(file, question, prompt):
 
     return answer
 
-
 def answer_question_without_file(prompt):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -90,27 +93,27 @@ def answer_question_without_file(prompt):
     answer = response['choices'][0]['message']['content']
     return answer
 
+@app.post('/upload-file')
+async def upload_file(file: UploadFile = File(...)):
+    with open(os.path.join("/tmp", file.filename), "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {"filename": file.filename}
 
 @app.post('/process-pdf')
-async def process_pdf(file: UploadFile = File(None),
-                      question: str = Form(...),
-                      location: str = Form(...)):
+async def process_pdf(filename: str = Form(...),  # change the parameter to filename
+                      question: str = Form(...)):
     prompt = (
         "You are an expert attorney. "
         "Give your advice on the following question: "
     )
-    located = " I am located here: "
-    located += location
-    prompt += question + located
+    prompt += question 
     print(prompt)
 
-    if file and file.filename != '':
+    if filename:  # check if a filename was provided
         print('c')
-        with open(os.path.join("/tmp", file.filename), "wb") as buffer:
-            buffer.write(await file.read())
-        print('c')
-        answer = process_document_and_query(
-            os.path.join("/tmp", file.filename), question, prompt)
+        docsearch = process_document_and_query(
+            os.path.join("/tmp", filename))  # use the filename to access the file
+        answer=process_question(docsearch, question, prompt)
         print('c')
     else:
         answer = answer_question_without_file(prompt)
