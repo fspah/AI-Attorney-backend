@@ -61,6 +61,7 @@ def process_document_and_query(file):
     docsearch = Pinecone.from_texts(
         [t.page_content for t in texts], embeddings, index_name=index_name)
     print('a', flush=True)
+    print(docsearch, flush=True)
 
     return docsearch
 
