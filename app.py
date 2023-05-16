@@ -58,16 +58,17 @@ def process_document_and_query(file):
     embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
     print('a', flush=True)
 
+    filename = os.path.basename(file)
     docsearch = Pinecone.from_texts(
-        [t.page_content for t in texts], embeddings, index_name=index_name)
+        [t.page_content for t in texts], embeddings, index_name=index_name, metadata={"filename": filename})
     print('a', flush=True)
     print(docsearch, flush=True)
 
     return docsearch
 
 
-def process_question(docsearch, question, prompt):
-    docs = docsearch.similarity_search(question, include_metadata=True)
+def process_question(docsearch, question, prompt, filename):
+    docs = docsearch.similarity_search(question, include_metadata=True, filter_expression=f'filename == "{filename}"')
     print('a', flush=True)
 
     llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
@@ -123,7 +124,7 @@ async def process_pdf(filename: str = Form(...), question: str = Form(...)):
     print(prompt)
 
     docsearch = docsearch_cache[filename]
-    answer = process_question(docsearch, question, prompt)
+    answer = process_question(docsearch, question, prompt, filename)
 
     return JSONResponse(content={'answer': answer})
 
