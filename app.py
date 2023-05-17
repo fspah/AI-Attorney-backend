@@ -59,7 +59,7 @@ def process_document_and_query(file):
     print('a', flush=True)
 
     filename = os.path.basename(file)
-    print (filename)
+    print(filename)
     docsearch = Pinecone.from_texts(
         [
             t.page_content for t in texts],
@@ -74,11 +74,10 @@ def process_document_and_query(file):
 
 
 def process_question(docsearch, question, prompt, filename):
-    print (filename)
+    print(filename)
     docs = docsearch.similarity_search(
         question, include_metadata=True, filter={
-            "filename": {
-                "$eq": filename}})
+            "filename": {"$eq": filename}})
     print('a', flush=True)
 
     llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
