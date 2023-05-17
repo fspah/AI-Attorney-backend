@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from typing import List
 import shutil
 import os
 import openai
@@ -137,17 +138,20 @@ async def process_pdf(filename: str = Form(...), question: str = Form(...)):
     return JSONResponse(content={'answer': answer})
 
 
-class Item(BaseModel):
-    prompt: str
+class Message(BaseModel):
+    role: str
+    content: str
+
+
+class Chat(BaseModel):
+    messages: List[Message]
+
 
 @app.post('/chat')
-async def chat(item: Item):
+async def chat(chat: Chat):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": item.prompt}
-        ],
+        messages=[message.dict() for message in chat.messages],
         max_tokens=200,
         temperature=0
     )
