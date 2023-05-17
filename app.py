@@ -92,20 +92,6 @@ def process_question(docsearch, question, prompt, filename):
     return answer
 
 
-def answer_question_without_file(prompt):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=200,
-        temperature=0
-    )
-    answer = response['choices'][0]['message']['content']
-    return answer
-
-
 docsearch_cache = {}  # Cache to store docsearch objects. Key is filename.
 
 
@@ -152,7 +138,7 @@ async def chat(chat: Chat):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[message.dict() for message in chat.messages],
-        max_tokens=200,
+        max_tokens=2000,
         temperature=0
     )
     answer = response['choices'][0]['message']['content']
