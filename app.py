@@ -65,8 +65,7 @@ def process_document_and_query(file):
             t.page_content for t in texts],
         embeddings,
         index_name=index_name,
-        metadata={
-            "filename": filename})
+        namespace=filename)
     print('a', flush=True)
     print(docsearch, flush=True)
 
@@ -76,8 +75,7 @@ def process_document_and_query(file):
 def process_question(docsearch, question, prompt, filename):
     print(filename)
     docs = docsearch.similarity_search(
-        question, include_metadata=True, filter={
-            "filename": {"$eq": filename}})
+        question, include_metadata=True, namespace=filename)
     print('a', flush=True)
 
     llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
