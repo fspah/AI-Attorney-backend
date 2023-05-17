@@ -59,6 +59,7 @@ def process_document_and_query(file):
     print('a', flush=True)
 
     filename = os.path.basename(file)
+    print (filename)
     docsearch = Pinecone.from_texts(
         [
             t.page_content for t in texts],
@@ -73,6 +74,7 @@ def process_document_and_query(file):
 
 
 def process_question(docsearch, question, prompt, filename):
+    print (filename)
     docs = docsearch.similarity_search(
         question, include_metadata=True, filter={
             "filename": {
