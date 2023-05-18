@@ -77,7 +77,7 @@ def process_document_and_query(file):
 def process_question(docsearch, question, prompt, filename):
     print(filename)
     docs = docsearch.similarity_search(
-        question, include_metadata=True, namespace=filename)
+        question, namespace=filename)
     print('a', flush=True)
 
     llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
@@ -138,7 +138,7 @@ async def chat(chat: Chat):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[message.dict() for message in chat.messages],
-        max_tokens=2000,
+        max_tokens=4000,
         temperature=0
     )
     answer = response['choices'][0]['message']['content']
