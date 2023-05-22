@@ -49,8 +49,8 @@ def process_document_and_query(file):
     print('a', flush=True)
 
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=0)
+        chunk_size=500,
+        chunk_overlap=50)
     print('a', flush=True)
 
     texts = text_splitter.split_documents(data)
