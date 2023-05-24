@@ -106,6 +106,7 @@ class Message(BaseModel):
 
 class Chat(BaseModel):
     messages: List[Message]
+    filename: str
 
 
 @app.post('/upload-file')
@@ -135,7 +136,8 @@ async def process_pdf(chat: Chat = Body(...)):
     messages_str = ' '.join([message['content'] for message in messages])
     prompt += messages_str
     print(prompt)
-    docsearch = docsearch_cache[chat.filename]
+    filename = chat.filename
+    docsearch = docsearch_cache[filename]
     answer = process_question(docsearch, question, prompt, chat.filename)
 
     return JSONResponse(content={'answer': answer})
