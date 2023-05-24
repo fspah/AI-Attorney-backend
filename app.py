@@ -129,7 +129,9 @@ async def process_pdf(chat: Chat, filename: str = Form(...)):
     messages = [message.dict() for message in chat.messages]
     last_message = messages[-1]
     question = last_message['content']
-    prompt += messages
+    # Convert messages to string
+    messages_str = ' '.join([message['content'] for message in messages])
+    prompt += messages_str
     print(prompt)
     docsearch = docsearch_cache[filename]
     answer = process_question(docsearch, question, prompt, filename)
