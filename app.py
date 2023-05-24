@@ -84,7 +84,8 @@ def process_question(docsearch, question, prompt, filename):
                  openai_api_key=OPENAI_API_KEY)
     print('a', flush=True)
 
-    chain = load_qa_chain(llm, chain_type="stuff", return_source_documents=True)
+    chain = load_qa_chain(llm, chain_type="stuff",
+                          return_source_documents=True)
     print('a', flush=True)
 
     answer = chain.run(input_documents=docs, question=prompt)
@@ -95,6 +96,7 @@ def process_question(docsearch, question, prompt, filename):
 
 docsearch_cache = {}  # Cache to store docsearch objects. Key is filename.
 
+
 class Message(BaseModel):
     role: str
     content: str
@@ -103,7 +105,6 @@ class Message(BaseModel):
 class Chat(BaseModel):
     messages: List[Message]
 
-filenamee=''
 
 @app.post('/upload-file')
 async def upload_file(file: UploadFile = File(...)):
@@ -116,25 +117,22 @@ async def upload_file(file: UploadFile = File(...)):
     # Save the docsearch object in the cache
     docsearch_cache[file.filename] = docsearch
 
-    filenamee=file.filename
-
     return {"filename": file.filename}
 
 
 @app.post('/process-pdf')
-async def process_pdf(chat: Chat, filenamee):
+async def process_pdf(chat: Chat, filename: str = Form(...)):
     prompt = (
         "You are an expert attorney. "
         "Give your advice on the following question: "
     )
-    messages=[message.dict() for message in chat.messages]
+    messages = [message.dict() for message in chat.messages]
     last_message = messages[-1]
     question = last_message['content']
     prompt += messages
     print(prompt)
-    print(filenamee)
-    docsearch = docsearch_cache[filenamee]
-    answer = process_question(docsearch, question, prompt, filenamee)
+    docsearch = docsearch_cache[filename]
+    answer = process_question(docsearch, question, prompt, filename)
 
     return JSONResponse(content={'answer': answer})
 
