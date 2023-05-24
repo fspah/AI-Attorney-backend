@@ -1,4 +1,5 @@
-from fastapi import FastAPI, File, Form, UploadFile
+from fastapi import FastAPI, File, UploadFile
+from fastapi import Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -121,7 +122,7 @@ async def upload_file(file: UploadFile = File(...)):
 
 
 @app.post('/process-pdf')
-async def process_pdf(chat: Chat, filename: str = Form(...)):
+async def process_pdf(chat: Chat = Body(...)):
     prompt = (
         "You are an expert attorney. "
         "Give your advice on the following question: "
@@ -133,8 +134,8 @@ async def process_pdf(chat: Chat, filename: str = Form(...)):
     messages_str = ' '.join([message['content'] for message in messages])
     prompt += messages_str
     print(prompt)
-    docsearch = docsearch_cache[filename]
-    answer = process_question(docsearch, question, prompt, filename)
+    docsearch = docsearch_cache[chat.filename]
+    answer = process_question(docsearch, question, prompt, chat.filename)
 
     return JSONResponse(content={'answer': answer})
 
