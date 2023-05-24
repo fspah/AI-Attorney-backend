@@ -84,7 +84,7 @@ def process_question(docsearch, question, prompt, filename):
                  openai_api_key=OPENAI_API_KEY)
     print('a', flush=True)
 
-    chain = load_qa_chain(llm, chain_type="stuff")
+    chain = load_qa_chain(llm, chain_type="stuff", return_source_documents=True)
     print('a', flush=True)
 
     answer = chain.run(input_documents=docs, question=prompt)
