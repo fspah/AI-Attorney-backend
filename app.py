@@ -80,12 +80,12 @@ def process_question(docsearch, question, prompt, filename):
         question, namespace=filename)
     print('a', flush=True)
 
-    llm = OpenAI(temperature=0, modelName='gpt-4',
+    llm = OpenAI(modelName='gpt-4', temperature=0,
                  openai_api_key=OPENAI_API_KEY)
     print('a', flush=True)
 
-    chain = load_qa_chain(llm, chain_type="stuff",
-                          return_source_documents=True)
+    chain = load_qa_chain(llm, chain_type="stuff")
+#                         return_source_documents=True)
     print('a', flush=True)
 
     answer = chain.run(input_documents=docs, question=prompt)
