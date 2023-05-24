@@ -95,6 +95,15 @@ def process_question(docsearch, question, prompt, filename):
 
 docsearch_cache = {}  # Cache to store docsearch objects. Key is filename.
 
+class Message(BaseModel):
+    role: str
+    content: str
+
+
+class Chat(BaseModel):
+    messages: List[Message]
+
+filenamee=''
 
 @app.post('/upload-file')
 async def upload_file(file: UploadFile = File(...)):
@@ -107,31 +116,27 @@ async def upload_file(file: UploadFile = File(...)):
     # Save the docsearch object in the cache
     docsearch_cache[file.filename] = docsearch
 
+    filenamee=file.filename
+
     return {"filename": file.filename}
 
 
 @app.post('/process-pdf')
-async def process_pdf(filename: str = Form(...), question: str = Form(...)):
+async def process_pdf(chat: Chat, filenamee):
     prompt = (
         "You are an expert attorney. "
         "Give your advice on the following question: "
     )
-    prompt += question
+    messages=[message.dict() for message in chat.messages]
+    last_message = messages[-1]
+    question = last_message['content']
+    prompt += messages
     print(prompt)
-
-    docsearch = docsearch_cache[filename]
-    answer = process_question(docsearch, question, prompt, filename)
+    print(filenamee)
+    docsearch = docsearch_cache[filenamee]
+    answer = process_question(docsearch, question, prompt, filenamee)
 
     return JSONResponse(content={'answer': answer})
-
-
-class Message(BaseModel):
-    role: str
-    content: str
-
-
-class Chat(BaseModel):
-    messages: List[Message]
 
 
 @app.post('/chat')
