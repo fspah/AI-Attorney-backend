@@ -128,10 +128,7 @@ async def upload_file(file: UploadFile = File(...)):
 
 @app.post('/process-pdf')
 async def process_pdf(chat: Chat = Body(...)):
-    prompt = (
-        "You are an expert attorney. "
-        "Give your advice on the following question: "
-    )
+    prompt = ''
     messages = [message.dict() for message in chat.messages]
     last_message = messages[-1]
     question = last_message['content']
