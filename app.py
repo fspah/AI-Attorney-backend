@@ -82,7 +82,7 @@ def process_question(docsearch, question, prompt, filename):
         question, namespace=filename)
     print('a', flush=True)
 
-    llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
+    llm = OpenAI(model="gpt-4", temperature=0, openai_api_key=OPENAI_API_KEY)
     print('a', flush=True)
 
     chain = load_qa_chain(llm, chain_type="stuff")
@@ -106,6 +106,10 @@ class Message(BaseModel):
 class Chat(BaseModel):
     messages: List[Message]
     filename: str
+
+
+class Chat2(BaseModel):
+    messages: List[Message]
 
 
 @app.post('/upload-file')
@@ -143,7 +147,7 @@ async def process_pdf(chat: Chat = Body(...)):
 
 
 @app.post('/chat')
-async def chat(chat: Chat):
+async def chat(chat: Chat2):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[message.dict() for message in chat.messages],
