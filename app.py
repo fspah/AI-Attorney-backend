@@ -7,12 +7,19 @@ from typing import List
 import shutil
 import os
 import openai
-from langchain.llms import OpenAI
+# from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Pinecone
-from langchain.chains.question_answering import load_qa_chain
+# from langchain.chains.question_answering import load_qa_chain
+from langchain.chains import LLMChain
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
 import pinecone
 from dotenv import load_dotenv
 
@@ -51,8 +58,8 @@ def process_document_and_query(file):
     print('a', flush=True)
 
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50)
+        chunk_size=1000,
+        chunk_overlap=100)
     print('a', flush=True)
 
     texts = text_splitter.split_documents(data)
@@ -80,17 +87,23 @@ def process_question(docsearch, question, prompt, filename):
     print(filename)
     docs = docsearch.similarity_search(
         question, namespace=filename)
-    print('a', flush=True)
 
-    llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
-    print('a', flush=True)
+    chat = ChatOpenAI(model_name="gpt-4", temperature=0)
 
-    chain = load_qa_chain(llm, chain_type="stuff")
-#                         return_source_documents=True)
-    print('a', flush=True)
+#    llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
 
-    answer = chain.run(input_documents=docs, question=prompt)
-    print('a', flush=True)
+    template = """You are an expert attorney. You can
+    answer legal questions based on the context you are given: {docs}"""
+    system_message_prompt = SystemMessagePromptTemplate.from_template(template)
+    human_template = "{question}"
+    human_message_prompt = HumanMessagePromptTemplate.from_template(
+                                                    human_template)
+    chat_prompt = ChatPromptTemplate.from_messages(
+        [system_message_prompt, human_message_prompt]
+    )
+#   chain = load_qa_chain(llm, chain_type="stuff")
+    chain = LLMChain(llm=chat, prompt=chat_prompt)
+    answer = chain.run(input_documents=docs, question=question)
 
     return answer
 
