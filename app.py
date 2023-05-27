@@ -87,7 +87,7 @@ def process_question(docsearch, question, prompt, filename):
     print(filename)
     docs = docsearch.similarity_search(
         question, namespace=filename)
-
+    docs_page_content = " ".join([d.page_content for d in docs])
     chat = ChatOpenAI(model_name="gpt-4", temperature=0)
 
 #    llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
@@ -103,7 +103,7 @@ def process_question(docsearch, question, prompt, filename):
     )
 #   chain = load_qa_chain(llm, chain_type="stuff")
     chain = LLMChain(llm=chat, prompt=chat_prompt)
-    answer = chain.run(input_documents=docs, question=question)
+    answer = chain.run(question=question, docs=docs_page_content)
 
     return answer
 
