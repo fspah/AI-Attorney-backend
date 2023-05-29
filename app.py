@@ -20,6 +20,8 @@ from langchain.prompts.chat import (
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
+from langchain.llms import OpenAI
+from langchain.chains import ConversationalRetrievalChain
 import pinecone
 from dotenv import load_dotenv
 
@@ -83,7 +85,7 @@ def process_document_and_query(file):
     return docsearch
 
 
-def process_question(docsearch, question, prompt, filename):
+def process_question(docsearch, question, all_but_last_messages, filename):
     print(filename)
     docs = docsearch.similarity_search(
         question, namespace=filename)
@@ -109,7 +111,13 @@ def process_question(docsearch, question, prompt, filename):
     )
 #   chain = load_qa_chain(llm, chain_type="stuff")
     chain = LLMChain(llm=chat, prompt=chat_prompt)
-    answer = chain.run(question=question, docs=docs_page_content)
+
+    qa = ConversationalRetrievalChain.from_llm(OpenAI(temperature=0),
+                                               docsearch.as_retriever())
+    chain.run(question=question, docs=docs_page_content)
+    result = qa({"question": chat_prompt,
+                 "chat_history": all_but_last_messages})
+    answer = result["answer"]
 
     return answer
 
@@ -152,12 +160,17 @@ async def process_pdf(chat: Chat = Body(...)):
     last_message = messages[-1]
     question = last_message['content']
     # Convert messages to string
+    all_but_last_messages = messages[:-1]
+    messages_str_last = ' '.join([message['content']
+                                  for message in all_but_last_messages])
     messages_str = ' '.join([message['content'] for message in messages])
     prompt += messages_str
+    print(messages_str_last)
     print(prompt)
     filename = chat.filename
     docsearch = docsearch_cache[filename]
-    answer = process_question(docsearch, question, prompt, chat.filename)
+    answer = process_question(docsearch, question,
+                              all_but_last_messages, chat.filename)
 
     return JSONResponse(content={'answer': answer})
 
@@ -170,7 +183,7 @@ async def chat(chat: Chat2):
         max_tokens=4000,
         temperature=0
     )
-    messagess=[message.dict() for message in chat.messages]
+    messagess = [message.dict() for message in chat.messages]
     print(messagess)
     answer = response['choices'][0]['message']['content']
     return JSONResponse(content={'answer': answer})
