@@ -170,6 +170,8 @@ async def chat(chat: Chat2):
         max_tokens=4000,
         temperature=0
     )
+    messagess=[message.dict() for message in chat.messages]
+    print(messagess)
     answer = response['choices'][0]['message']['content']
     return JSONResponse(content={'answer': answer})
 
