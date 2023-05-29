@@ -93,7 +93,13 @@ def process_question(docsearch, question, prompt, filename):
 #    llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
 
     template = """You are an expert attorney. You can
-    answer legal questions based on the context you are given: {docs}"""
+    answer legal questions based on the context you are given: {docs}
+    If you don't know the answer, just say you don't know.
+    DO NOT try to make up an answer.
+    If the question is not related to the context,
+    politely respond that you are tuned to only answer questions
+    that are related to the context."""
+
     system_message_prompt = SystemMessagePromptTemplate.from_template(template)
     human_template = "{question}"
     human_message_prompt = HumanMessagePromptTemplate.from_template(
@@ -159,7 +165,7 @@ async def process_pdf(chat: Chat = Body(...)):
 @app.post('/chat')
 async def chat(chat: Chat2):
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4",
         messages=[message.dict() for message in chat.messages],
         max_tokens=4000,
         temperature=0
