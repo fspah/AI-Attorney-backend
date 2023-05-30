@@ -156,8 +156,7 @@ async def upload_file(file: UploadFile = File(...)):
 async def process_pdf(chat: Chat = Body(...)):
     prompt = ''
     messages = [message.dict() for message in chat.messages]
-    if messages:
-        last_message = messages[-1]
+    last_message = messages[-1]
     print(messages)
     question = last_message['content']
     # Convert messages to string
