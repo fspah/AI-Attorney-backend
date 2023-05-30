@@ -144,7 +144,6 @@ async def upload_file(file: UploadFile = File(...)):
     with open(os.path.join("/tmp", file.filename), "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # After the file is saved, process the document
     docsearch = process_document_and_query(os.path.join("/tmp", file.filename))
 
     # Save the docsearch object in the cache
