@@ -122,7 +122,7 @@ def process_question(docsearch, question, chat_history, filename):
                                                    namespace=filename))
 
     prompt = """You are an expert attorney.
-            the question with the context provided and the messages history."""
+            Answer the question with the context provided and the chat history."""
     prompt += question
     result = qa({"question": prompt,
                  "chat_history": chat_history})
