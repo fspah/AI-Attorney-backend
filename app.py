@@ -14,13 +14,13 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Pinecone
 # from langchain.chains.question_answering import load_qa_chain
-from langchain.chains import LLMChain
+""" from langchain.chains import LLMChain
 from langchain.prompts.chat import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
-from langchain.llms import OpenAI
+from langchain.llms import OpenAI """
 from langchain.chains import ConversationalRetrievalChain
 import pinecone
 from dotenv import load_dotenv
@@ -85,11 +85,11 @@ def process_document_and_query(file):
     return docsearch
 
 
-def process_question(docsearch, question, all_but_last_messages, filename):
+def process_question(docsearch, question, messages_str_last, filename):
     print(filename)
-    docs = docsearch.similarity_search(
+    """docs = docsearch.similarity_search(
         question, namespace=filename)
-    """ docs_page_content = " ".join([d.page_content for d in docs])
+    docs_page_content = " ".join([d.page_content for d in docs])
     chat = ChatOpenAI(model_name="gpt-4", temperature=0)
 
 #    llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
@@ -113,10 +113,19 @@ def process_question(docsearch, question, all_but_last_messages, filename):
     chain = LLMChain(llm=chat, prompt=chat_prompt)
     chain.run(question=question, docs=docs_page_content) """
 
-    qa = ConversationalRetrievalChain.from_llm(OpenAI(temperature=0),
-                                               docsearch.as_retriever())
+    qa = ConversationalRetrievalChain.from_llm(ChatOpenAI(
+                                                model_name="gpt-4",
+                                                temperature=0,
+                                                openai_api_key=OPENAI_API_KEY
+                                                ),
+                                               docsearch.as_retriever(
+                                                   namespace=filename))
+
+    prompt = """You are an expert attorney.
+            the question with the context provided and the messages history."""
+    prompt += question
     result = qa({"question": question,
-                 "chat_history": all_but_last_messages})
+                 "chat_history": messages_str_last})
     answer = result["answer"]
 
     return answer
@@ -170,7 +179,7 @@ async def process_pdf(chat: Chat = Body(...)):
     filename = chat.filename
     docsearch = docsearch_cache[filename]
     answer = process_question(docsearch, question,
-                              all_but_last_messages, chat.filename)
+                              messages_str_last, chat.filename)
 
     return JSONResponse(content={'answer': answer})
 
