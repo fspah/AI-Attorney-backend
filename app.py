@@ -89,18 +89,18 @@ def process_question(docsearch, question, all_but_last_messages, filename):
     print(filename)
     docs = docsearch.similarity_search(
         question, namespace=filename)
-    docs_page_content = " ".join([d.page_content for d in docs])
+    """ docs_page_content = " ".join([d.page_content for d in docs])
     chat = ChatOpenAI(model_name="gpt-4", temperature=0)
 
 #    llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
 
-    template = """You are an expert attorney. You can
+    template = You are an expert attorney. You can
     answer legal questions based on the context you are given: {docs}
     If you don't know the answer, just say you don't know.
     DO NOT try to make up an answer.
     If the question is not related to the context,
     politely respond that you are tuned to only answer questions
-    that are related to the context."""
+    that are related to the context.
 
     system_message_prompt = SystemMessagePromptTemplate.from_template(template)
     human_template = "{question}"
@@ -111,11 +111,11 @@ def process_question(docsearch, question, all_but_last_messages, filename):
     )
 #   chain = load_qa_chain(llm, chain_type="stuff")
     chain = LLMChain(llm=chat, prompt=chat_prompt)
+    chain.run(question=question, docs=docs_page_content) """
 
     qa = ConversationalRetrievalChain.from_llm(OpenAI(temperature=0),
                                                docsearch.as_retriever())
-    chain.run(question=question, docs=docs_page_content)
-    result = qa({"question": chat_prompt,
+    result = qa({"question": question,
                  "chat_history": all_but_last_messages})
     answer = result["answer"]
 
