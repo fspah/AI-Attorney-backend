@@ -85,7 +85,7 @@ def process_document_and_query(file):
     return docsearch
 
 
-def process_question(docsearch, question, all_but_last_messages, filename):
+def process_question(docsearch, question, chat_history, filename):
     print(filename)
     """docs = docsearch.similarity_search(
         question, namespace=filename)
@@ -125,7 +125,7 @@ def process_question(docsearch, question, all_but_last_messages, filename):
             the question with the context provided and the messages history."""
     prompt += question
     result = qa({"question": prompt,
-                 "chat_history": all_but_last_messages})
+                 "chat_history": chat_history})
     answer = result["answer"]
 
     return answer
@@ -170,6 +170,10 @@ async def process_pdf(chat: Chat = Body(...)):
     question = last_message['content']
     # Convert messages to string
     all_but_last_messages = messages[:-1]
+    chat_history = []
+    for i in range(0, len(all_but_last_messages), 2):
+        chat_history.append((all_but_last_messages[i]['content'],
+                             all_but_last_messages[i + 1]['content']))
     messages_str_last = ' '.join([message['content']
                                   for message in all_but_last_messages])
     messages_str = ' '.join([message['content'] for message in messages])
@@ -179,7 +183,7 @@ async def process_pdf(chat: Chat = Body(...)):
     filename = chat.filename
     docsearch = docsearch_cache[filename]
     answer = process_question(docsearch, question,
-                              all_but_last_messages, chat.filename)
+                              chat_history, chat.filename)
 
     return JSONResponse(content={'answer': answer})
 
