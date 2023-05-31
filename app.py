@@ -124,7 +124,7 @@ def process_question(docsearch, question, all_but_last_messages, filename):
     prompt = """You are an expert attorney.
             the question with the context provided and the messages history."""
     prompt += question
-    result = qa({"question": question,
+    result = qa({"question": prompt,
                  "chat_history": all_but_last_messages})
     answer = result["answer"]
 
