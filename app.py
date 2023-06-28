@@ -7,20 +7,11 @@ from typing import List
 import shutil
 import os
 import openai
-# from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Pinecone
-# from langchain.chains.question_answering import load_qa_chain
-""" from langchain.chains import LLMChain
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
-from langchain.llms import OpenAI """
 from langchain.chains import ConversationalRetrievalChain
 import pinecone
 from dotenv import load_dotenv
@@ -87,31 +78,6 @@ def process_document_and_query(file):
 
 def process_question(docsearch, question, chat_history, filename):
     print(filename)
-    """docs = docsearch.similarity_search(
-        question, namespace=filename)
-    docs_page_content = " ".join([d.page_content for d in docs])
-    chat = ChatOpenAI(model_name="gpt-4", temperature=0)
-
-#    llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
-
-    template = You are an expert attorney. You can
-    answer legal questions based on the context you are given: {docs}
-    If you don't know the answer, just say you don't know.
-    DO NOT try to make up an answer.
-    If the question is not related to the context,
-    politely respond that you are tuned to only answer questions
-    that are related to the context.
-
-    system_message_prompt = SystemMessagePromptTemplate.from_template(template)
-    human_template = "{question}"
-    human_message_prompt = HumanMessagePromptTemplate.from_template(
-                                                    human_template)
-    chat_prompt = ChatPromptTemplate.from_messages(
-        [system_message_prompt, human_message_prompt]
-    )
-#   chain = load_qa_chain(llm, chain_type="stuff")
-    chain = LLMChain(llm=chat, prompt=chat_prompt)
-    chain.run(question=question, docs=docs_page_content) """
 
     qa = ConversationalRetrievalChain.from_llm(ChatOpenAI(
                                                 model_name="gpt-4",
@@ -131,7 +97,7 @@ def process_question(docsearch, question, chat_history, filename):
     return answer
 
 
-docsearch_cache = {}  # Cache to store docsearch objects. Key is filename.
+docsearch_cache = {}  
 
 
 class Message(BaseModel):
@@ -155,7 +121,6 @@ async def upload_file(file: UploadFile = File(...)):
 
     docsearch = process_document_and_query(os.path.join("/tmp", file.filename))
 
-    # Save the docsearch object in the cache
     docsearch_cache[file.filename] = docsearch
 
     return {"filename": file.filename}
@@ -168,7 +133,6 @@ async def process_pdf(chat: Chat = Body(...)):
     last_message = messages[-1]
     print(messages)
     question = last_message['content']
-    # Convert messages to string
     all_but_last_messages = messages[:-1]
     chat_history = []
     for i in range(0, len(all_but_last_messages), 2):
